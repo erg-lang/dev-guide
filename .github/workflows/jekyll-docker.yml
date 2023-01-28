@@ -41,8 +41,9 @@ jobs:
           rm -rf dev_guide
 
           svn export https://github.com/erg-lang/erg/trunk/doc/EN/dev_guide/
-          mdbook build --dest-dir dist
+          mdbook build --dest-dir tmp
           sleep 1
+          mv tmp/* dist
           rm -rf dev_guide
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
