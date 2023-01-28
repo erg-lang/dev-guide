@@ -1,0 +1,53 @@
+name: Deploy
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 22 * * *"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions: # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v1
+        with:
+          mdbook-version: "0.4.10"
+      - name: Run script
+        run: |
+          mkdir dist
+
+          svn export https://github.com/erg-lang/erg/trunk/doc/JA/dev_guide/
+          mdbook build --dest-dir dist/JA
+          sleep 1
+          rm -rf dev_guide
+
+          svn export https://github.com/erg-lang/erg/trunk/doc/zh_CN/dev_guide/
+          mdbook build --dest-dir dist/zh_CN
+          sleep 1
+          rm -rf dev_guide
+
+          svn export https://github.com/erg-lang/erg/trunk/doc/zh_TW/dev_guide/
+          mdbook build --dest-dir dist/zh_TW
+          sleep 1
+          rm -rf dev_guide
+
+          svn export https://github.com/erg-lang/erg/trunk/doc/EN/dev_guide/
+          mdbook build --dest-dir dist
+          sleep 1
+          rm -rf dev_guide
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: dist
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
